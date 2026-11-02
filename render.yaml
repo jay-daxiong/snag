@@ -7,7 +7,7 @@ services:
     runtime: node
     plan: free            # 免费套餐：自动 HTTPS、稳定子域；空闲 15 分钟后会休眠，下次访问自动唤醒（约 30s）
     region: oregon        # 可选：singapore / frankfurt 等；免费套餐默认 oregon
-    branch: main
+    branch: master
     buildCommand: "npm install"
     startCommand: "node server.js"
     envVars:
