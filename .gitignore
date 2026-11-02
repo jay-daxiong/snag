@@ -1,0 +1,7 @@
+node_modules/
+server-data.json
+*.log
+.env
+.DS_Store
+regions.bak1.js
+regions.prev.js

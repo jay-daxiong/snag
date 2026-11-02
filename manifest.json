@@ -1,0 +1,17 @@
+{
+  "name": "Snag · 附近的免费好物",
+  "short_name": "Snag",
+  "description": "发现附近可免费领取或低价流转的闲置好物，本地化撮合，让闲置流动起来。",
+  "lang": "zh-CN",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0FB97E",
+  "theme_color": "#0FB97E",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,17 @@
+# Render 免费托管配置（路线 A 的"永久免费地址"）
+# 用法：把本仓库推到 GitHub → 在 render.com 用 GitHub 登录 → New Web Service → 连仓库 → 选 Free → Deploy
+# Render 会自动读取 package.json，执行 npm install（本应用零依赖）后再用 startCommand 启动。
+services:
+  - type: web
+    name: snag
+    runtime: node
+    plan: free            # 免费套餐：自动 HTTPS、稳定子域；空闲 15 分钟后会休眠，下次访问自动唤醒（约 30s）
+    region: oregon        # 可选：singapore / frankfurt 等；免费套餐默认 oregon
+    branch: main
+    buildCommand: "npm install"
+    startCommand: "node server.js"
+    envVars:
+      - key: NODE_ENV
+        value: "production"
+      # PORT 由 Render 自动注入，无需手动设置；本应用监听 process.env.PORT 且绑定 0.0.0.0
+      # 想接入真实短信/支付/实名/AI，复制 .env.example 为 .env 并填值，或在 Render 的 Environment 里逐项添加

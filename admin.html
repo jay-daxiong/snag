@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snag 数据后台</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<div id="loginMask" class="login-mask" hidden>
+  <form id="loginForm" class="login-box" autocomplete="on">
+    <div class="lb-brand"><span class="dot"></span> SNAG 数据后台</div>
+    <h3>管理员登录</h3>
+    <input id="loginUser" name="user" type="text" placeholder="管理员账号" autocomplete="username" />
+    <input id="loginPass" name="pass" type="password" placeholder="密码" autocomplete="current-password" />
+    <button id="loginBtn" type="submit">登录</button>
+    <div id="loginErr" class="login-err" hidden></div>
+    <p class="login-hint">默认演示账号 admin / admin123（生产请用环境变量 SNAG_ADMIN_USER / SNAG_ADMIN_PASS 覆盖）</p>
+  </form>
+</div>
+
+<header class="top">
+  <div class="brand"><span class="dot"></span><span>SNAG</span><i>数据后台</i></div>
+  <div class="top-right">
+    <span class="role-badge" id="roleBadge" hidden></span>
+    <span class="status" id="conn">连接中…</span>
+    <button id="refresh">刷新</button>
+    <button id="logout" class="logout" hidden>登出</button>
+    <a href="index.html" target="_blank">打开 App</a>
+  </div>
+</header>
+
+<div class="banner" id="banner" hidden></div>
+
+<main class="wrap">
+
+  <section class="cards" id="cards"></section>
+
+  <section class="panel" data-admin-only>
+    <div class="p-head"><h3>功能使用分析 · 数据驱动决策</h3><small>按埋点频次、触达用户、与留存的关联算综合分，给出「该放 / 可放 / 可缓」；并对比数据自发归类，标出需复核项</small></div>
+    <div class="decision-summary" id="decisionSummary"></div>
+    <div class="feat-table" id="featTable"></div>
+    <p class="feat-note" id="featNote"></p>
+  </section>
+
+  <section class="panel" data-admin-only>
+    <div class="p-head"><h3>区域分布（按省）</h3><small>埋点事件的地域热度</small></div>
+    <div id="provBars"></div>
+  </section>
+
+
+  <section class="grid2" data-admin-only>
+    <div class="panel">
+      <div class="p-head"><h3>新增用户 · 近 14 天</h3><span id="usersSum"></span></div>
+      <div id="chartUsers" class="chart"></div>
+    </div>
+    <div class="panel">
+      <div class="p-head"><h3>收入 · 近 14 天</h3><span id="revSum"></span></div>
+      <div id="chartRev" class="chart"></div>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div class="panel">
+      <div class="p-head"><h3>新增用户城市分布</h3></div>
+      <div id="cityBars"></div>
+    </div>
+    <div class="panel" data-admin-only>
+      <div class="p-head"><h3>抓取源健康度</h3><small>今日抓取量与失败率</small></div>
+      <div id="sources"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="p-head"><h3>内容机审 · 待复核</h3><span id="modCount"></span><small>发布前自动机审命中「需复核」的闲置，人工通过后才公开</small></div>
+    <div class="table-wrap"><table class="tbl" id="tblMod"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="p-head"><h3>实名认证审核</h3><span id="kycCount"></span></div>
+    <div class="table-wrap"><table class="tbl" id="tblKyc"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="p-head"><h3>举报审核 / 内容管理</h3><span id="reportCount"></span><small>举报→核实→下架违规闲置或封禁违规用户，满足应用商店内容审核要求</small></div>
+    <div class="table-wrap"><table class="tbl" id="tblReports"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="p-head"><h3>支付订单</h3><span id="orderCount"></span></div>
+    <div class="table-wrap"><table class="tbl" id="tblOrders"></table></div>
+  </section>
+
+  <section class="panel" data-admin-only>
+    <div class="p-head"><h3>用户</h3><span id="userCount"></span></div>
+    <div class="table-wrap"><table class="tbl" id="tblUsers"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="p-head"><h3>操作审计日志</h3><small>后台登录、实名审核、下架、封禁、通过、注销等关键动作留痕，满足合规追溯</small></div>
+    <div class="table-wrap"><table class="tbl" id="tblAudit"></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="p-head"><h3>实时事件</h3><small>登录、下单、支付、实名</small></div>
+    <div id="logs" class="logs"></div>
+  </section>
+
+  <footer class="foot">
+    <b>说明</b>：这是演示后台，已加管理员登录鉴权——进入后台需先登录，
+    所有数据接口都要求携带登录后签发的令牌（Bearer Token），未授权会返回 401。
+    后台支持两种角色：<b>admin</b>（全权，含用户/数据/来源面板）与 <b>moderator</b>（仅内容/实名/举报审核）。
+    用户与订单含预置的演示数据（首次启动生成），之后你在 App 里真实产生的
+    注册、下单、支付、实名会追加进来。生产环境请务必修改默认账号密码
+    （环境变量 SNAG_ADMIN_USER / SNAG_ADMIN_PASS）并改用 HTTPS。
+  </footer>
+
+</main>
+
+<script src="admin.js"></script>
+</body>
+</html>

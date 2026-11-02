@@ -1,0 +1,14 @@
+{
+  "name": "snag",
+  "version": "1.0.0",
+  "description": "Snag · 附近的免费好物 — 本地发现、免费领取/赠送闲置物品的 PWA（零依赖 Node 后端）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "license": "MIT"
+}

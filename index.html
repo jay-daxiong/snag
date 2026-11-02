@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Snag · 附近的免费好物</title>
+<meta name="theme-color" content="#0FB97E">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<svg style="position:absolute;width:0;height:0" aria-hidden="true">
+  <defs>
+    <symbol id="ic-furniture" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3"/><rect x="3" y="11" width="18" height="6" rx="2"/><path d="M7 17v2M17 17v2"/></g></symbol>
+    <symbol id="ic-appliance" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M6 9h12M9 6v1.5M9 12.5v2.5"/></g></symbol>
+    <symbol id="ic-digital" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M9 20h6M12 16v4"/></g></symbol>
+    <symbol id="ic-baby" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21h6a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1V8a2 2 0 1 0-4 0v3H9a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2z"/><path d="M10 8h4"/></g></symbol>
+    <symbol id="ic-sport" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M4 7.5c5 3 11 3 16 0M4 16.5c5-3 11-3 16 0"/></g></symbol>
+    <symbol id="ic-book" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5z"/><path d="M4 19a2 2 0 0 1 2-2h13"/></g></symbol>
+    <symbol id="ic-other" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-4 9 4v8l-9 4-9-4V8z"/><path d="M3 8l9 4 9-4M12 12v8"/></g></symbol>
+  </defs>
+</svg>
+
+<div class="stage">
+  <div class="phone">
+
+    <header class="topbar">
+      <div class="brand"><span class="brand-dot"></span><span class="brand-name">SNAG</span></div>
+      <button class="place" id="placeBtn">
+        <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="10" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span id="placeLabel">上海</span>
+      </button>
+      <button class="bell" id="locateBtn" aria-label="一键定位">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
+      </button>
+      <button class="bell" id="bellBtn" aria-label="实时提醒">
+        <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M18 16v-5a6 6 0 1 0-12 0v5l-1.5 2.5h15L18 16z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 20a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <i class="bell-badge" id="bellBadge" hidden></i>
+      </button>
+    </header>
+
+    <div class="locbar" id="locBar" hidden></div>
+
+    <section class="hero">
+      <p class="greet" id="greet"></p>
+      <h1>附近的<em>免费好物</em>，我们替你盯着</h1>
+      <div class="stats">
+        <div class="stat"><b id="statToday">0</b><span>今日新增</span></div>
+        <div class="stat"><b id="statNear">0</b><span>3 公里内</span></div>
+        <div class="stat"><b id="statValue">¥0</b><span>可省价值</span></div>
+      </div>
+      <p class="social-proof" id="socialProof"></p>
+      <div class="scenes" id="sceneRow"></div>
+    </section>
+
+    <div class="searchwrap">
+      <div class="search">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M16 16l4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <input id="searchInput" type="search" placeholder="试试：徐汇 沙发 / 给宝宝添点东西" autocomplete="off">
+      </div>
+      <div class="viewswitch" role="tablist">
+        <button class="vsw is-on" data-view="list" role="tab" aria-selected="true">列表</button>
+        <button class="vsw" data-view="map" role="tab" aria-selected="false">地图</button>
+      </div>
+    </div>
+
+    <div class="aibar" id="aiBar" hidden></div>
+
+    <nav class="chips" id="catChips" aria-label="分类筛选"></nav>
+    <div class="subfilters">
+      <select id="radiusSel" aria-label="距离筛选">
+        <option value="99">不限距离</option>
+        <option value="1">1 公里内</option>
+        <option value="3">3 公里内</option>
+        <option value="5">5 公里内</option>
+      </select>
+      <select id="timeSel" aria-label="发布时间筛选">
+        <option value="99999">全部时间</option>
+        <option value="60">1 小时内</option>
+        <option value="360">6 小时内</option>
+        <option value="1440">24 小时内</option>
+      </select>
+      <select id="sortSel" aria-label="排序方式">
+        <option value="smart">智能排序</option>
+        <option value="fresh">最新优先</option>
+        <option value="near">最近优先</option>
+        <option value="value">最值钱优先</option>
+        <option value="safe">还没被抢走</option>
+      </select>
+      <span class="count" id="resultCount">0 件</span>
+    </div>
+
+    <main class="content" id="content">
+      <div class="cardlist" id="cardList"></div>
+      <div class="mapview" id="mapView" hidden>
+        <div class="mapcanvas" id="mapCanvas"></div>
+        <div class="mappick" id="mapPick" hidden></div>
+      </div>
+      <div class="empty" id="emptyState" hidden>
+        <div class="empty-ico"></div><p>这个条件下还没有东西</p><small>放宽距离或时间试试</small>
+      </div>
+    </main>
+
+    <nav class="tabbar">
+      <button class="tab is-on" data-tab="home"><span class="tab-ico ico-home"></span>发现</button>
+      <button class="tab" data-tab="saved"><span class="tab-ico ico-heart"></span>收藏</button>
+      <button class="tab" data-tab="alerts"><span class="tab-ico ico-bell"></span>提醒</button>
+      <button class="tab" data-tab="me"><span class="tab-ico ico-user"></span>我的</button>
+    </nav>
+
+    <div class="toasts" id="toasts"></div>
+    <div class="scrim" id="scrim" hidden></div>
+
+    <div class="sheet" id="sheet" hidden role="dialog" aria-label="物品详情">
+      <div class="sheet-grab"></div><div class="sheet-body" id="sheetBody"></div>
+    </div>
+
+    <div class="sheet sheet-msg" id="msgSheet" hidden role="dialog" aria-label="发送领取请求">
+      <div class="sheet-grab"></div><div class="sheet-body" id="msgBody"></div>
+    </div>
+
+    <div class="sheet sheet-pay" id="paySheet" hidden role="dialog" aria-label="收银台">
+      <div class="sheet-grab"></div><div class="sheet-body" id="payBody"></div>
+    </div>
+
+    <div class="sheet sheet-kyc" id="kycSheet" hidden role="dialog" aria-label="实名认证">
+      <div class="sheet-grab"></div><div class="sheet-body" id="kycBody"></div>
+    </div>
+
+    <!-- 登录 / 注册 -->
+    <div class="auth" id="authLayer" hidden>
+      <div class="auth-card">
+        <div class="auth-brand"><span class="brand-dot"></span><span class="brand-name">SNAG</span></div>
+        <h2>登录一下，收藏不丢</h2>
+        <p class="auth-sub">没有账号？直接输，登录即注册。</p>
+        <div class="auth-tabs">
+          <button class="atab is-on" data-atab="phone">手机号</button>
+          <button class="atab" data-atab="email">邮箱</button>
+        </div>
+        <input id="authAccount" class="auth-input" type="text" inputmode="numeric" placeholder="请输入手机号" autocomplete="off">
+        <div class="auth-code">
+          <input id="authCode" class="auth-input" type="text" inputmode="numeric" maxlength="6" placeholder="6 位验证码" autocomplete="off">
+          <button id="authSend" class="auth-send">获取验证码</button>
+        </div>
+        <p class="auth-tip" id="authTip"></p>
+        <button class="pw-cta" id="authSubmit">登录 / 注册</button>
+        <button class="ob-skip" id="authSkip">先随便看看</button>
+        <p class="auth-fine">演示环境不会真的发短信或邮件，验证码会直接显示在上面</p>
+        <p class="auth-legal">登录即代表同意 <a href="agreement.html">《用户协议》</a> 与 <a href="privacy.html">《隐私政策》</a></p>
+      </div>
+    </div>
+
+    <!-- 首次引导 -->
+    <div class="onboard" id="onboard" hidden>
+      <div class="ob-inner">
+        <span class="pw-tag">先花 10 秒</span>
+        <h2>你最近想找点什么？</h2>
+        <p class="ob-lead">选几个方向，我们把这几类排到前面，其他的往后放。</p>
+        <div class="ob-grid" id="obGrid"></div>
+        <button class="pw-cta" id="obDone">好了，开始看看</button>
+        <button class="ob-skip" id="obSkip">先随便看看</button>
+        <p class="pw-fine">随时可以在「我的」里改</p>
+      </div>
+    </div>
+
+    <!-- 城市选择 -->
+    <div class="drawer" id="cityDrawer" hidden>
+      <div class="drawer-inner">
+        <div class="drawer-head"><h3>选择城市 / 定位</h3><button id="cityClose" aria-label="关闭">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </button></div>
+
+        <button class="gps-btn" id="gpsBtn">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
+          一键定位（GPS 精准到市/县）
+        </button>
+
+        <div class="cascade">
+          <select id="provSel" aria-label="省/直辖市"><option value="">省/直辖市</option></select>
+          <select id="citySel" aria-label="城市"><option value="">城市</option></select>
+          <select id="countySel" aria-label="区/县"><option value="">区/县</option></select>
+        </div>
+        <button class="cascade-go" id="cascadeGo" disabled>查看该城市免费好物</button>
+
+        <div class="hot-title">热门城市</div>
+        <div class="city-grid" id="cityGrid"></div>
+        <p class="drawer-note">覆盖全国 34 省 · 345 个地级市（离线即精准到市）。一键定位联网后逆地理编码再精准到区/县，全国通用。</p>
+      </div>
+    </div>
+
+    <div class="paywall" id="paywall" hidden role="dialog" aria-label="订阅解锁">
+      <div class="pw-card">
+        <button class="pw-close" id="pwClose" aria-label="关闭">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </button>
+        <span class="pw-tag">PRO</span>
+        <h2>再往下，只剩「已拿到」和「没抢到」</h2>
+        <p class="pw-lead">免费浏览的额度用完了。开通会员后：</p>
+        <ul class="pw-list">
+          <li>不限次数浏览全部本地免费物品</li>
+          <li>有新货第一时间推送到手机</li>
+          <li>抢手指数与剩余时间预测，好货不被别人先拿</li>
+          <li>收藏不限数量，还能一键规划顺路路线</li>
+        </ul>
+        <div class="pw-plans" id="pwPlans">
+          <button class="plan is-on" data-plan="month"><b>¥19</b><span>每月</span><i>折算 ¥0.63/天</i></button>
+          <button class="plan" data-plan="year"><b>¥118</b><span>每年</span><i class="save">省 48%</i></button>
+        </div>
+        <button class="pw-cta" id="pwCta">去支付</button>
+        <p class="pw-fine">试用期结束前可随时取消，不产生费用</p>
+      </div>
+    </div>
+
+  </div>
+
+  <aside class="note">
+    <h3>这一版加了什么</h3>
+    <p><b>定位与同城</b></p>
+    <ol>
+      <li><b>一键定位</b>：调用浏览器原生的定位接口拿真实经纬度，成功后按你的实际位置重算所有距离、重排地图。浏览器不支持或被拒绝时，会明确提示并让你手动选城市。</li>
+      <li><b>同城搜索</b>：7 个城市可切换，每城独立数据集；搜索框里写区名（如"徐汇"）也能直接限定范围。</li>
+    </ol>
+    <p><b>AI 增强</b></p>
+    <ol start="3">
+      <li><b>风险识别</b>：出现"押金""运费""到付"这类词自动标红——免费的东西不该先掏钱。</li>
+      <li><b>一句话总结</b>：把每件物品压成一句人话。</li>
+      <li><b>场景搭配</b>：点"0 元布置书房"，自动从全城挑出一套组合清单和总估值。</li>
+      <li><b>相似推荐</b>：详情页给出"你可能还想拿"。</li>
+    </ol>
+    <p><b>账号与支付</b></p>
+    <ol start="7">
+      <li><b>手机号 / 邮箱验证码登录</b>，登录即注册，服务端签发令牌。</li>
+      <li><b>实名认证</b>：身份证校验用的是真实的 GB 11643 mod 11-2 校验位算法。</li>
+      <li><b>收银台</b>：下单 → 二维码 → 轮询 → 回调 → 开通会员，走的是完整 HTTP 流程。</li>
+    </ol>
+    <p class="note-warn"><b>必须说清楚的三件事</b>：① 短信和邮件没有真发，验证码由本地服务生成并直接返回；② 支付没有对接任何真实支付渠道，二维码是占位的，"我已完成支付"是模拟回调；③ 实名只做了格式与校验位检查，没有对接公安库或第三方认证。这三样要上真环境，都得换成对应的服务商并配上密钥，接口结构不用改。</p>
+    <p class="note-src">数据来源说明：产品信息与收入数字来自公开的媒体报道与访谈整理，为创始人自述口径，未经审计。</p>
+  </aside>
+</div>
+
+<script src="regions.js"></script>
+<script src="geocode.js"></script>
+<script src="data.js"></script>
+<script src="engine.js"></script>
+<script src="api.js"></script>
+<script src="app.js"></script>
+<script src="aiwidget.js"></script>
+<script src="qrcode.js"></script>
+<script src="growth.js"></script>
+</body>
+</html>
