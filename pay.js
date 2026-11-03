@@ -11,6 +11,7 @@
  * 生产接入（在 .env / 启动环境配置）：
  *   微信： SNAG_WX_MCH_ID  SNAG_WX_APP_ID  SNAG_WX_SERIAL（证书序列号）
  *         SNAG_WX_PRIVATE_KEY（PEM 私钥内容或路径）  SNAG_WX_APIV3_KEY（回调解密）
+ *         SNAG_WX_PLATFORM_PUBLIC_KEY（微信平台证书公钥 PEM，用于 /notify 验签）
  *         SNAG_WX_NOTIFY_URL（如 https://your.domain/api/pay/notify）
  *   支付宝：SNAG_ALI_APP_ID  SNAG_ALI_PRIVATE_KEY（PEM）  SNAG_ALI_PUBLIC_KEY（支付宝公钥）
  *         SNAG_ALI_NOTIFY_URL  （可选 SNAG_ALI_GATEWAY）
@@ -28,6 +29,7 @@ const cfg = {
     privateKey: loadKey(process.env.SNAG_WX_PRIVATE_KEY),
     apiv3: process.env.SNAG_WX_APIV3_KEY || '',
     notifyUrl: process.env.SNAG_WX_NOTIFY_URL || '',
+    platformPublicKey: loadKey(process.env.SNAG_WX_PLATFORM_PUBLIC_KEY),
   },
   alipay: {
     appId: process.env.SNAG_ALI_APP_ID || '',

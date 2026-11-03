@@ -22,6 +22,9 @@ const pay = require('./pay');
 const kyc = require('./kyc');
 const ai = require('./ai');
 const moderation = require('./moderation');
+// 可选 Postgres 持久化（仅在设置 DATABASE_URL 时启用，否则完全不介入）
+const pgstore = require('./pgstore');
+let PG_ENABLED = false;
 
 const ROOT = __dirname;
 const PORT = process.env.PORT ? Number(process.env.PORT) : 8787;
@@ -203,8 +206,10 @@ function loadDB() {
 }
 function saveDB() {
   try { fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf8'); } catch (e) {}
+  // 非阻塞地把内存快照落盘到 Postgres（若已启用）；失败不影响本地 JSON 备份
+  if (PG_ENABLED) { pgstore.saveAll(db); }
 }
-loadDB();
+// loadDB() 延后到下方 async bootstrap 中执行（以支持 Postgres 恢复），此处不再同步调用
 
 function log(kind, text) {
   db.logs.unshift({ at: Date.now(), kind, text });
@@ -1072,10 +1077,44 @@ if (TLS_KEY && TLS_CRT && fs.existsSync(TLS_KEY) && fs.existsSync(TLS_CRT)) {
   server = http.createServer(handler);
 }
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log('Snag 服务已启动' + (proto === 'https' ? '（HTTPS）' : ''));
-  console.log('  前端  ' + proto + '://127.0.0.1:' + PORT);
-  console.log('  后台  ' + proto + '://127.0.0.1:' + PORT + '/admin');
-  console.log('  数据  ' + DB_FILE);
-  if (proto === 'http') console.log('  [提示] 未配置 TLS，当前为 HTTP；上架前请配置 SNAG_TLS_KEY/SNAG_TLS_CRT 启用 HTTPS');
-});
+async function bootstrap() {
+  // 1) 连接 Postgres（若设置了 DATABASE_URL）
+  PG_ENABLED = await pgstore.init();
+  // 2) 载入数据：优先从 Postgres 恢复，否则从本地 JSON 种子初始化
+  if (PG_ENABLED) {
+    try {
+      const fromPG = await pgstore.loadAll();
+      if (fromPG && Array.isArray(fromPG.users)) {
+        db = fromPG;
+        if (!db.adminTokens) db.adminTokens = {};
+        if (!db.listings) db.listings = [];
+        if (!db.reports) db.reports = [];
+        if (!db.audit) db.audit = [];
+        if (!db.codes) db.codes = {};
+        if (!db.tokens) db.tokens = {};
+        console.log('[PG] 已从 Postgres 恢复数据');
+      } else {
+        loadDB(); // 首次：从 JSON 种子初始化，内部 saveDB 会自动写入 Postgres
+      }
+    } catch (e) {
+      console.error('[PG] 恢复失败，回退本地 JSON：' + e.message);
+      loadDB();
+    }
+  } else {
+    loadDB();
+  }
+  // 3) 启动 HTTP/HTTPS 服务
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log('Snag 服务已启动' + (proto === 'https' ? '（HTTPS）' : ''));
+    console.log('  前端  ' + proto + '://127.0.0.1:' + PORT);
+    console.log('  后台  ' + proto + '://127.0.0.1:' + PORT + '/admin');
+    console.log('  数据  ' + (PG_ENABLED ? 'Postgres (DATABASE_URL)' : DB_FILE));
+    if (proto === 'http') console.log('  [提示] 未配置 TLS，当前为 HTTP；上架前请配置 SNAG_TLS_KEY/SNAG_TLS_CRT 启用 HTTPS');
+  });
+}
+
+// 优雅关闭时断开 Postgres 连接池
+process.on('SIGTERM', () => { pgstore.close(); process.exit(0); });
+process.on('SIGINT', () => { pgstore.close(); process.exit(0); });
+
+bootstrap();

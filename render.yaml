@@ -14,4 +14,32 @@ services:
       - key: NODE_ENV
         value: "production"
       # PORT 由 Render 自动注入，无需手动设置；本应用监听 process.env.PORT 且绑定 0.0.0.0
-      # 想接入真实短信/支付/实名/AI，复制 .env.example 为 .env 并填值，或在 Render 的 Environment 里逐项添加
+      # 以下为可选生产配置：在 Render 控制台 Environment 里逐项添加真实值（sync:false 表示不在仓库里写死密钥）
+      - key: DATABASE_URL
+        sync: false          # 接 Postgres 真·持久化（Supabase/Neon 免费档的连接串）；不填则仍用本地 JSON
+      - key: SNAG_WX_MCH_ID
+        sync: false
+      - key: SNAG_WX_APP_ID
+        sync: false
+      - key: SNAG_WX_SERIAL
+        sync: false
+      - key: SNAG_WX_PRIVATE_KEY
+        sync: false
+      - key: SNAG_WX_APIV3_KEY
+        sync: false
+      - key: SNAG_WX_PLATFORM_PUBLIC_KEY
+        sync: false
+      - key: SNAG_WX_NOTIFY_URL
+        sync: false
+      - key: SNAG_ALI_APP_ID
+        sync: false
+      - key: SNAG_ALI_PRIVATE_KEY
+        sync: false
+      - key: SNAG_ALI_PUBLIC_KEY
+        sync: false
+      - key: SNAG_ALI_NOTIFY_URL
+        sync: false
+      - key: SNAG_ADMIN_PASS
+        sync: false          # 上线后务必改后台密码
+      - key: SNAG_MOD_PASS
+        sync: false
