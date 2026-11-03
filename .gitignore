@@ -5,3 +5,8 @@ server-data.json
 .DS_Store
 regions.bak1.js
 regions.prev.js
+
+.vercel
+snag.db
+snag.db-wal
+snag.db-shm

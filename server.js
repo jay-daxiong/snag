@@ -279,18 +279,47 @@ function adminTokenRec(req) {
 function genInviteCode() {
   return crypto.randomBytes(4).toString('hex').toUpperCase().slice(0, 6);
 }
-// 邀请奖励：邀请人每成功邀请 1 人注册，得 7 天会员权益（虚拟，用于兑换/曝光加权）
-const INVITE_REWARD_DAYS = 7;
+// 裂变激励：邀请越多，单人奖励越高（阶梯加速，鼓励持续邀请）
+// 档位：0-2 人 7 天/人；3-5 人 9 天；6-10 人 11 天；11-20 人 15 天；21+ 人 21 天
+function inviteRewardDays(totalAfter) {
+  if (totalAfter >= 21) return 21;
+  if (totalAfter >= 11) return 15;
+  if (totalAfter >= 6) return 11;
+  if (totalAfter >= 3) return 9;
+  return 7;
+}
+function inviteTierInfo(total) {
+  const tiers = [
+    { min: 0,  reward: 7,  name: '起步' },
+    { min: 3,  reward: 9,  name: '小有成绩' },
+    { min: 6,  reward: 11, name: '渐入佳境' },
+    { min: 11, reward: 15, name: '活跃推广' },
+    { min: 21, reward: 21, name: '裂变达人' },
+  ];
+  let cur = tiers[0], next = null;
+  for (let i = 0; i < tiers.length; i++) {
+    if (total >= tiers[i].min) { cur = tiers[i]; next = tiers[i + 1] || null; }
+  }
+  return { tier: cur, next, toNext: next ? next.min - total : 0 };
+}
 function applyInvite(inviteCode, newUserId) {
   if (!inviteCode) return false;
   const inviter = db.users.filter((u) => u.inviteCode === String(inviteCode).trim().toUpperCase())[0];
   if (!inviter || inviter.id === newUserId) return false;
   inviter.inviteCount = (inviter.inviteCount || 0) + 1;
-  inviter.rewardDays = (inviter.rewardDays || 0) + INVITE_REWARD_DAYS;
+  const reward = inviteRewardDays(inviter.inviteCount);
+  inviter.rewardDays = (inviter.rewardDays || 0) + reward;
   const nu = db.users.filter((u) => u.id === newUserId)[0];
   if (nu) nu.invitedBy = inviter.id;
-  log('invite', `用户 ${inviter.account} 成功邀请 1 人注册，+${INVITE_REWARD_DAYS} 天权益`);
+  log('invite', `用户 ${inviter.account} 成功邀请 1 人注册（累计 ${inviter.inviteCount} 人，本单 +${reward} 天权益）`);
   return true;
+}
+// 账号脱敏（用于排行榜展示）
+function maskAccount(acc) {
+  const s = String(acc || '');
+  if (/^1\d{10}$/.test(s)) return s.slice(0, 3) + '****' + s.slice(7);
+  if (s.indexOf('@') > 0) return s[0] + '***' + s.slice(s.indexOf('@'));
+  return s.slice(0, 2) + '***';
 }
 
 /* 身份证校验：GB 11643-1999 的 mod 11-2 校验码算法，这是真的算法 */
@@ -723,7 +752,13 @@ const routes = {
   'GET /api/listings': async (req, res, b, query) => {
     let list = db.listings.filter((l) => l.status === 'online');
     if (query.city) list = list.filter((l) => l.cityCode == query.city);
-    list = list.sort((a, b) => b.createdAt - a.createdAt).slice(0, 60);
+    // 曝光加权：活跃邀请者的闲置获得更高排序权重（裂变反哺，每人最多 +20h）
+    const score = (l) => {
+      const owner = db.users.filter((u) => u.id === l.userId)[0];
+      const boost = owner ? Math.min(owner.inviteCount || 0, 20) * 3600000 : 0;
+      return (l.createdAt || 0) + boost;
+    };
+    list = list.sort((a, b) => score(b) - score(a)).slice(0, 60);
     return { ok: true, listings: list };
   },
   'POST /api/listings/delete': async (req, res, b) => {
@@ -755,6 +790,22 @@ const routes = {
     saveDB();
     log('invite', `${u.account} 用 7 天权益兑换会员`);
     return json(res, 200, { ok: true, subscribed: true, rewardDays: u.rewardDays });
+  },
+  'GET /api/invite/status': async (req, res) => {
+    const u = userByToken(req);
+    if (!u) return json(res, 401, { ok: false, msg: '未登录' });
+    const info = inviteTierInfo(u.inviteCount || 0);
+    return json(res, 200, {
+      ok: true,
+      inviteCode: u.inviteCode,
+      inviteCount: u.inviteCount || 0,
+      rewardDays: u.rewardDays || 0,
+      currentReward: inviteRewardDays(u.inviteCount || 0),
+      tier: info.tier.name,
+      nextTier: info.next ? info.next.name : null,
+      nextReward: info.next ? info.next.reward : null,
+      toNext: info.toNext,
+    });
   },
 
   /* ---------- 内容举报（审核/防骗） ---------- */
@@ -897,9 +948,24 @@ const routes = {
   /* ---------- 社交证明（首页激励） ---------- */
   'GET /api/social': async (req, res, b, query) => {
     const online = db.listings.filter((l) => l.status === 'online');
-    const givingNearby = online.length + 1200;
-    const claimedWeek = 860 + (db.events.filter((e) => e.type === 'claim').reduce((a, e) => a + (e.count || 1), 0) % 600);
-    return { ok: true, givingNearby, claimedWeek, totalListings: db.listings.length, onlineListings: online.length };
+    const topInviters = db.users
+      .filter((u) => (u.inviteCount || 0) > 0)
+      .sort((a, b) => (b.inviteCount || 0) - (a.inviteCount || 0))
+      .slice(0, 5)
+      .map((u) => ({ mask: maskAccount(u.account), inviteCount: u.inviteCount || 0, rewardDays: u.rewardDays || 0 }));
+    return {
+      ok: true,
+      givingNearby: online.length + 1200,
+      claimedWeek: 860 + (db.events.filter((e) => e.type === 'claim').reduce((a, e) => a + (e.count || 1), 0) % 600),
+      totalListings: db.listings.length,
+      onlineListings: online.length,
+      activeUsers: db.users.length,
+      topInviters,
+      copy: {
+        headline: '附近的人正在免费送好物',
+        sub: '邀请好友一起捡漏 —— 你邀请的人越多，每单奖励的会员天数越多',
+      },
+    };
   },
 
   // 管理员登录：校验账号密码，签发随机令牌（存 adminTokens）

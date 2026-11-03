@@ -87,7 +87,8 @@
         '<div class="gr-body">' +
         '<p class="gr-lead">好友用你的邀请码注册或发布闲置，你和好友都能获得会员权益。邀请越多，免费会员越久。</p>' +
         '<div class="gr-codebox"><div class="gr-code">' + esc(code) + '</div><span>你的专属邀请码</span></div>' +
-        '<div class="gr-reward">已邀请 <b>' + invCount + '</b> 人 · 可用权益 <b>' + reward + '</b> 天</div>' +
+        '<div class="gr-reward">已邀请 <b>' + invCount + '</b> 人 · 可用权益 <b>' + reward + '</b> 天' +
+        '<div id="invTier" class="gr-tier"></div></div>' +
         '<button class="gr-cta" id="invShare">分享给好友</button>' +
         '<div class="gr-row"><button class="gr-btn" id="invCopy">复制邀请链接</button><button class="gr-btn" id="invPoster">生成分享海报</button></div>' +
         (reward >= 7 ? '<button class="gr-btn ghost" id="invRedeem">用 7 天权益兑换会员</button>' : '<p class="gr-tip">再邀请 1 位好友即可兑换 7 天会员</p>') +
@@ -105,6 +106,17 @@
       var rb = ov.querySelector('#invRedeem');
       if (rb) rb.addEventListener('click', function () {
         Api.inviteRedeem().then(function (r) { if (r.ok) { if (window.SNAG && window.SNAG.toast) window.SNAG.toast('兑换成功', '会员已开通', null); openInviteRefresh(ov); } else alert(r.msg || '兑换失败'); });
+      });
+      Api.inviteStatus().then(function (s) {
+        if (s && s.ok) {
+          var tierEl = ov.querySelector('#invTier');
+          if (tierEl) {
+            var html = '当前档位：<b>' + esc(s.tier) + '</b> · 每邀请 1 人得 <b>' + s.currentReward + '</b> 天';
+            if (s.nextTier) html += '<br>再邀请 <b>' + s.toNext + '</b> 人升到「' + esc(s.nextTier) + '」，每单 +' + s.nextReward + ' 天';
+            else html += '<br>已达最高档位，每邀请 1 人得 ' + s.currentReward + ' 天';
+            tierEl.innerHTML = html;
+          }
+        }
       });
     });
   }

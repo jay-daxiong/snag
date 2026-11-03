@@ -219,6 +219,9 @@ var Api = (function () {
   function inviteRedeem() {
     return probe().then(function (ok) { return ok ? req('POST', '/api/invite/redeem') : { ok: false, offline: true }; });
   }
+  function inviteStatus() {
+    return probe().then(function (ok) { return ok ? req('GET', '/api/invite/status') : { ok: false, offline: true }; });
+  }
   function report(targetType, targetId, reason) {
     return probe().then(function (ok) { return ok ? req('POST', '/api/report', { targetType: targetType, targetId: targetId, reason: reason }) : { ok: false, offline: true }; });
   }
@@ -252,7 +255,7 @@ var Api = (function () {
     payCreate: payCreate, payQuery: payQuery, payMock: payMock,
     aiChat: aiChat,
     listingCreate: listingCreate, listingsMine: listingsMine, listingsPublic: listingsPublic,
-    listingDelete: listingDelete, inviteBind: inviteBind, inviteRedeem: inviteRedeem,
+    listingDelete: listingDelete, inviteBind: inviteBind, inviteRedeem: inviteRedeem, inviteStatus: inviteStatus,
     report: report, social: social,
     accountDelete: accountDelete,
     track: track,
